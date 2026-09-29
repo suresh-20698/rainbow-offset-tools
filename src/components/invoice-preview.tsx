@@ -8,7 +8,7 @@ interface InvoicePreviewProps {
 }
 
 export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
-  const isNonGst = !data.clientGst || data.clientGst.trim() === "";
+  const isNonGst = data.enableGst === false;
   const calculations = calculateInvoice(data.items, data.isGstInclusive, data.gstRate, isNonGst);
 
   return (
@@ -18,7 +18,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
         paddingTop: data.showDigitalHeader ? "14mm" : `${data.letterheadOffsetMm}mm`,
         paddingLeft: "18mm",
         paddingRight: "18mm",
-        paddingBottom: "16mm",
+        paddingBottom: "24mm",
       }}
     >
       {/* 1. Optional Digital Header (for digital PDF export / plain paper) */}
@@ -45,256 +45,217 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
       )}
 
       {/* 2. Main Professional Content Container */}
-      <div className="flex flex-1 flex-col justify-between">
-        <div className="space-y-4">
+      <div className="flex min-h-0 flex-1 flex-col justify-between">
+        <div className="flex min-h-0 flex-1 flex-col space-y-3">
           {/* Invoice Header Title Bar */}
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-            <div>
-              <h2 className="text-xl font-extrabold tracking-tight text-slate-900 uppercase">
-                {isNonGst ? "Invoice" : "Tax Invoice"}
-              </h2>
-              <p className="mt-0.5 text-xs text-slate-500">Original for Recipient</p>
+          <div className="shrink-0 border-b border-slate-200 pt-6 pb-1">
+            <h2 className="text-xl font-extrabold tracking-tight text-slate-900 uppercase">
+              {isNonGst ? "Invoice" : "Tax Invoice"}
+            </h2>
+          </div>
+
+          {/* Client Details & Invoice Overview */}
+          <div className="flex shrink-0 items-start justify-between gap-8 text-xs">
+            {/* Billed To (Client Details) */}
+            <div className="flex-1 space-y-1">
+              <span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+                Billed To
+              </span>
+              <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase">
+                {data.clientName || "_____________________________________"}
+              </h3>
+              <p className="text-xs leading-relaxed font-normal whitespace-pre-line text-slate-700">
+                {data.clientAddress || "Client Address Line 1\nCity, State - PIN"}
+              </p>
+              {!isNonGst && (
+                <div className="pt-0.5 text-xs">
+                  <span className="text-slate-500">GSTIN </span>
+                  <span className="font-bold text-slate-900">
+                    {data.clientGst || "Unregistered"}
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="text-right">
-              <div className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-100 px-3 py-1">
-                <span className="text-xs font-medium text-slate-500">Invoice No:</span>
-                <span className="text-sm font-bold text-slate-900">
+
+            {/* Invoice Meta */}
+            <div className="w-56 shrink-0 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Invoice No</span>
+                <span className="font-bold text-slate-900">
                   {data.billNo ? `#${data.billNo}` : "—"}
                 </span>
               </div>
-            </div>
-          </div>
-
-          {/* Client Details & Invoice Meta Grid (Wider Billed To + Compact Overview) */}
-          <div className="grid grid-cols-12 items-stretch gap-3.5">
-            {/* Billed To Card (Wider: 7 cols / ~60%) */}
-            <div className="col-span-7 flex flex-col justify-between space-y-3 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-              <div className="space-y-1.5">
-                <span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                  Billed To (Client Details)
-                </span>
-                <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase">
-                  {data.clientName || "_____________________________________"}
-                </h3>
-                <p className="text-xs leading-relaxed font-normal whitespace-pre-line text-slate-700">
-                  {data.clientAddress || "Client Address Line 1\nCity, State - PIN"}
-                </p>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Invoice Date</span>
+                <span className="font-bold text-slate-900">{formatDateToIndian(data.date)}</span>
               </div>
-
-              {/* Perfectly Aligned GSTIN Row */}
-              <div className="flex items-center justify-between border-t border-slate-200/90 pt-2">
-                <span className="text-xs font-medium text-slate-600">GSTIN / Tax ID:</span>
-                <span className="rounded border border-slate-200/80 bg-white px-2.5 py-0.5 text-xs font-bold text-slate-900 shadow-2xs">
-                  {data.clientGst || (isNonGst ? "NIL / Non-GST" : "—")}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Place of Supply</span>
+                <span className="font-bold text-slate-900">
+                  Tamil Nadu ({data.stateCode || "33"})
                 </span>
               </div>
-            </div>
-
-            {/* Invoice Meta Card (Compact: 5 cols / ~40%) */}
-            <div className="col-span-5 flex flex-col justify-between space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
-              <div className="space-y-2">
-                <span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
-                  Invoice Overview
-                </span>
-                <div className="space-y-1.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Invoice Date:</span>
-                    <span className="font-bold text-slate-900">
-                      {formatDateToIndian(data.date)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-500">Place of Supply:</span>
-                    <span className="font-bold text-slate-900">
-                      Tamil Nadu ({data.stateCode || "33"})
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between border-t border-slate-200/90 pt-2 text-xs">
-                <span className="text-slate-500">Pricing Mode:</span>
-                <span className="text-[11px] font-semibold text-slate-800">
-                  {data.isGstInclusive ? "GST Inclusive (18%)" : "GST Exclusive (+18%)"}
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-slate-500">Pricing Mode</span>
+                <span className="font-semibold text-slate-800">
+                  {isNonGst
+                    ? "Non-GST"
+                    : data.isGstInclusive
+                      ? "GST Inclusive (18%)"
+                      : "GST Exclusive (+18%)"}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Line Items Table */}
-          <div className="overflow-hidden rounded-xl border border-slate-200">
-            <table className="w-full border-collapse text-left">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
+            <table className="h-full w-full border-collapse text-left">
               <thead>
-                <tr className="border-b border-slate-200 bg-slate-100/90 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
-                  <th className="w-10 px-3 py-2.5 text-center">#</th>
+                <tr className="divide-x divide-slate-200 border-b border-slate-200 bg-slate-100/90 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
+                  <th className="w-8 px-2 py-2.5 text-center">#</th>
                   <th className="px-3 py-2.5">Particulars / Job Description</th>
-                  <th className="w-16 px-3 py-2.5 text-center">Qty</th>
-                  <th className="w-24 px-3 py-2.5 text-right">Rate (₹)</th>
-                  <th className="w-24 px-3 py-2.5 text-right">
+                  <th className="w-12 px-2 py-2.5 text-center whitespace-nowrap">Qty</th>
+                  <th className="w-20 px-2 py-2.5 text-right whitespace-nowrap">Rate (₹)</th>
+                  <th className="w-[86px] px-2 py-2.5 text-right whitespace-nowrap">
                     {isNonGst ? "GST" : `GST (${data.gstRate}%)`}
                   </th>
-                  <th className="w-28 px-3 py-2.5 text-right">Amount (₹)</th>
+                  <th className="w-24 px-2.5 py-2.5 text-right whitespace-nowrap">Amount (₹)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-xs text-slate-800">
+              <tbody className="h-full text-xs text-slate-800">
                 {calculations.rows.map((row) => (
-                  <tr key={row.sNo} className="hover:bg-slate-50/50">
-                    <td className="px-3 py-2.5 text-center font-medium text-slate-500">
+                  <tr key={row.sNo} className="divide-x divide-slate-200 hover:bg-slate-50/50">
+                    <td className="px-2 py-2.5 text-center font-medium text-slate-500">
                       {row.sNo}
                     </td>
                     <td className="px-3 py-2.5 text-[12.5px] font-semibold text-slate-900">
                       {row.particulars || "—"}
                     </td>
-                    <td className="px-3 py-2.5 text-center font-medium">{row.quantity || "—"}</td>
-                    <td className="px-3 py-2.5 text-right font-medium text-slate-600">
+                    <td className="px-2 py-2.5 text-center font-medium whitespace-nowrap">
+                      {row.quantity || "—"}
+                    </td>
+                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
                       {row.unitRate > 0 ? formatCurrency(row.unitRate) : "—"}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-medium text-slate-600">
+                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
                       {row.gstDisplay}
                     </td>
-                    <td className="px-3 py-2.5 text-right font-bold text-slate-950">
+                    <td className="px-2.5 py-2.5 text-right font-bold whitespace-nowrap text-slate-950">
                       {formatCurrency(row.taxableAmount)}
                     </td>
                   </tr>
                 ))}
+                {/* Auto-filled empty space row to extend table columns to the bottom */}
+                <tr className="h-full divide-x divide-slate-200">
+                  <td className="px-2 py-1"></td>
+                  <td className="px-3 py-1"></td>
+                  <td className="px-2 py-1"></td>
+                  <td className="px-2 py-1"></td>
+                  <td className="px-2 py-1"></td>
+                  <td className="px-2.5 py-1"></td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Compact Financial Summary Strip (Horizontal full-width layout to save vertical space) */}
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/90 px-4 py-2 text-xs">
-            <div className="flex items-center gap-4">
-              <div>
-                <span className="block text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
-                  Taxable Amount
-                </span>
-                <span className="block text-xs font-bold text-slate-900">
+          {/* Financial Summary: Right-Aligned Clean Ledger */}
+          <div className="flex shrink-0 justify-end pt-1 pb-1 text-xs">
+            {/* Right: Clean Accounting Tax & Total Ledger */}
+            <div className="w-64 shrink-0 space-y-1.5 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-slate-600">Taxable Amount</span>
+                <span className="font-semibold text-slate-900 tabular-nums">
                   ₹{formatCurrency(calculations.totalTaxable)}
                 </span>
               </div>
 
-              {!isNonGst && (
-                <>
-                  <div className="h-6 w-px bg-slate-200" />
-                  <div>
-                    <span className="block text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
-                      CGST ({data.gstRate / 2}%)
-                    </span>
-                    <span className="block text-xs font-semibold text-slate-700">
-                      ₹{formatCurrency(calculations.cgst)}
-                    </span>
-                  </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>CGST ({data.gstRate / 2}%)</span>
+                <span className="font-medium text-slate-800 tabular-nums">
+                  ₹{formatCurrency(calculations.cgst)}
+                </span>
+              </div>
 
-                  <div className="h-6 w-px bg-slate-200" />
-                  <div>
-                    <span className="block text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
-                      SGST ({data.gstRate / 2}%)
-                    </span>
-                    <span className="block text-xs font-semibold text-slate-700">
-                      ₹{formatCurrency(calculations.sgst)}
-                    </span>
-                  </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>SGST ({data.gstRate / 2}%)</span>
+                <span className="font-medium text-slate-800 tabular-nums">
+                  ₹{formatCurrency(calculations.sgst)}
+                </span>
+              </div>
 
-                  <div className="h-6 w-px bg-slate-200" />
-                  <div>
-                    <span className="block text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
-                      Total GST
-                    </span>
-                    <span className="block text-xs font-bold text-slate-900">
-                      ₹{formatCurrency(calculations.totalGst)}
-                    </span>
-                  </div>
-                </>
-              )}
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Round Off</span>
+                <span className="font-medium text-slate-800 tabular-nums">
+                  {calculations.roundOff > 0 ? "+" : ""}
+                  {formatCurrency(calculations.roundOff)}
+                </span>
+              </div>
 
-              {calculations.roundOff !== 0 && (
-                <>
-                  <div className="h-6 w-px bg-slate-200" />
-                  <div>
-                    <span className="block text-[9.5px] font-bold tracking-wider text-slate-500 uppercase">
-                      Round Off
-                    </span>
-                    <span className="block text-xs font-medium text-slate-600">
-                      {calculations.roundOff > 0 ? "+" : ""}
-                      {formatCurrency(calculations.roundOff)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Prominent Compact Grand Total */}
-            <div className="flex items-center gap-2.5 rounded-lg border border-slate-300/90 bg-white px-3 py-1.5 shadow-2xs">
-              <span className="text-[11px] font-black tracking-wider text-slate-700 uppercase">
-                Grand Total:
-              </span>
-              <span className="text-sm font-black text-slate-950">
-                ₹{calculations.grandTotal.toLocaleString("en-IN")}.00
-              </span>
+              {/* Grand Total Row */}
+              <div className="flex items-center justify-between pt-2 pb-1 text-slate-950">
+                <span className="text-xs font-bold tracking-wider text-slate-800 uppercase">
+                  Grand Total
+                </span>
+                <span className="text-lg font-bold tracking-tight text-slate-950 tabular-nums">
+                  ₹{calculations.grandTotal.toLocaleString("en-IN")}.00
+                </span>
+              </div>
             </div>
           </div>
         </div>
 
         {/* 3. Footer: Clear, Readable Bank Details (Left) + Signatory Block (Right) */}
-        <div className="mt-auto flex items-end justify-between gap-6 border-t border-slate-200 pt-4 text-xs">
-          {/* Left: Compact, High-Legibility Bank & Payment Details Card */}
-          <div className="max-w-lg flex-1 space-y-2.5 rounded-xl border border-slate-200 bg-slate-50/90 p-3.5">
-            <div className="border-b border-slate-200/80 pb-1.5">
-              <span className="text-[11px] font-bold tracking-wider text-slate-700 uppercase">
-                Bank &amp; Payment Details
+        <div className="mt-auto flex shrink-0 items-end justify-between gap-6 border-t border-slate-200 pt-4 text-xs">
+          {/* Left: Bank & Payment Details */}
+          <div className="max-w-lg flex-1 space-y-2 text-xs">
+            <span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
+              Bank &amp; Payment Details
+            </span>
+
+            <div>
+              <span className="block text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
+                Account Name
+              </span>
+              <span className="block text-xs font-bold text-slate-900">
+                {data.bankDetails.accountName}
               </span>
             </div>
 
-            <div className="space-y-2 text-xs">
-              {/* Row 1: Account Name Stacked */}
+            <div className="flex items-start gap-5">
               <div>
-                <span className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                  Account Name
+                <span className="block text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Bank Name
                 </span>
-                <span className="block text-[12.5px] leading-snug font-bold text-slate-900">
-                  {data.bankDetails.accountName}
+                <span className="block text-xs font-bold text-slate-800">
+                  {data.bankDetails.bankName}
                 </span>
               </div>
-
-              {/* Row 2: A/C No, Bank Name, IFSC Code all in the same line */}
-              <div className="grid grid-cols-3 gap-3 border-t border-slate-200/60 pt-1.5">
-                <div>
-                  <span className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                    A/C No
-                  </span>
-                  <span className="block text-xs font-bold tracking-wide text-slate-900">
-                    {data.bankDetails.accountNo}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                    Bank Name
-                  </span>
-                  <span className="block text-xs font-bold text-slate-900">
-                    {data.bankDetails.bankName}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="block text-[10px] font-semibold tracking-wider text-slate-500 uppercase">
-                    IFSC Code
-                  </span>
-                  <span className="block text-xs font-bold tracking-wide text-slate-900">
-                    {data.bankDetails.ifscCode}
-                  </span>
-                </div>
+              <div>
+                <span className="block text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Account Number
+                </span>
+                <span className="block font-mono text-xs font-bold tracking-wider text-slate-950">
+                  {data.bankDetails.accountNo}
+                </span>
+              </div>
+              <div>
+                <span className="block text-[9.5px] font-semibold tracking-wider text-slate-500 uppercase">
+                  IFSC Code
+                </span>
+                <span className="block font-mono text-xs font-bold tracking-wider text-slate-950">
+                  {data.bankDetails.ifscCode}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Right: Authorised Signatory */}
-          <div className="w-56 shrink-0 space-y-10 text-right">
-            <div className="text-xs font-bold tracking-wide text-slate-900 uppercase">
-              For Rainbow Offset Printer
-            </div>
-            <div className="border-t border-slate-400 pt-1 text-[11.5px] font-medium text-slate-700">
-              Authorised Signature
+          <div className="flex flex-col items-end text-right">
+            <div className="text-xs font-medium text-slate-700">For Rainbow Offset Printer</div>
+            <div className="h-12" />
+            <div className="w-36 border-t border-slate-300 pt-1.5 text-right">
+              <span className="text-[11.5px] font-medium text-slate-600">Authorised Signature</span>
             </div>
           </div>
         </div>

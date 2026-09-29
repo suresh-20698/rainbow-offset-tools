@@ -15,7 +15,7 @@ export const LetterPreview: React.FC<LetterPreviewProps> = ({ data }) => {
         paddingTop: data.showDigitalHeader ? "14mm" : `${data.letterheadOffsetMm}mm`,
         paddingLeft: "18mm",
         paddingRight: "18mm",
-        paddingBottom: "16mm",
+        paddingBottom: "24mm",
       }}
     >
       {/* 1. Optional Digital Header */}
@@ -108,16 +108,19 @@ export const LetterPreview: React.FC<LetterPreviewProps> = ({ data }) => {
             Rainbow Offset Printing Publishing & Trading • Official Correspondence
           </div>
 
-          <div className="w-56 shrink-0 space-y-10 text-right">
-            <div className="space-y-1">
-              <div className="text-xs text-slate-600">Yours faithfully,</div>
-              <div className="text-xs font-bold tracking-wide text-slate-900 uppercase">
+          {/* Right: Authorised Signatory */}
+          <div className="flex flex-col items-end text-right">
+            <div className="space-y-0.5">
+              <div className="text-xs font-normal text-slate-500">Yours faithfully,</div>
+              <div className="text-xs font-medium text-slate-700">
                 {data.signatoryCompany || "For Rainbow Offset Printer"}
               </div>
             </div>
-
-            <div className="border-t border-slate-400 pt-1 text-[11.5px] font-medium text-slate-700">
-              {data.signatoryTitle || "Authorised Signature"}
+            <div className="h-12" />
+            <div className="w-36 border-t border-slate-300 pt-1.5 text-right">
+              <span className="text-[11.5px] font-medium text-slate-600">
+                {data.signatoryTitle || "Authorised Signature"}
+              </span>
             </div>
           </div>
         </div>

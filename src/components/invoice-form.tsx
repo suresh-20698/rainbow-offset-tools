@@ -66,7 +66,91 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
   return (
     <div className="space-y-5 font-sans text-gray-800">
-      {/* 1. Client & Bill Information */}
+      {/* 1. GST Calculation */}
+      <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+          <h2 className="flex items-center gap-2 text-xs font-bold tracking-wider text-indigo-700 uppercase">
+            <Calculator className="h-4 w-4" />
+            GST Calculation
+          </h2>
+
+          {/* Switch Button for Enable/Disable GST */}
+          <div className="flex items-center gap-2.5">
+            <span
+              className={`text-xs font-semibold ${
+                data.enableGst !== false ? "font-bold text-indigo-700" : "text-gray-500"
+              }`}
+            >
+              {data.enableGst !== false ? "GST Enabled" : "GST Disabled"}
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={data.enableGst !== false}
+              onClick={() => updateField("enableGst", data.enableGst === false ? true : false)}
+              className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2 focus:outline-none ${
+                data.enableGst !== false ? "bg-indigo-600" : "bg-gray-300"
+              }`}
+              title="Toggle GST Calculation on/off"
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                  data.enableGst !== false ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {data.enableGst !== false ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* Mode Option 1: Inclusive (Default) */}
+            <button
+              type="button"
+              onClick={() => updateField("isGstInclusive", true)}
+              className={`cursor-pointer rounded-lg border p-3 text-left transition ${
+                data.isGstInclusive
+                  ? "border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm ring-1 ring-indigo-600"
+                  : "border-gray-200 bg-gray-50/50 text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span>GST Inclusive (Default)</span>
+                {data.isGstInclusive && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
+              </div>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Entered prices include 18% GST (e.g. ₹5,000 total = ₹4,237.29 base + ₹762.71 GST).
+              </p>
+            </button>
+
+            {/* Mode Option 2: Exclusive */}
+            <button
+              type="button"
+              onClick={() => updateField("isGstInclusive", false)}
+              className={`cursor-pointer rounded-lg border p-3 text-left transition ${
+                !data.isGstInclusive
+                  ? "border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm ring-1 ring-indigo-600"
+                  : "border-gray-200 bg-gray-50/50 text-gray-600 hover:border-gray-300"
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span>GST Exclusive</span>
+                {!data.isGstInclusive && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
+              </div>
+              <p className="mt-1 text-[11px] text-gray-500">
+                Entered prices are base amount; 18% GST is added on top (e.g. ₹700 base + ₹126 GST).
+              </p>
+            </button>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-800">
+            <span className="font-semibold">GST Disabled:</span> Line items will be billed without
+            tax (Non-GST / 0% Tax).
+          </div>
+        )}
+      </section>
+
+      {/* 2. Client & Bill Information */}
       <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
         <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
           <h2 className="flex items-center gap-2 text-xs font-bold tracking-wider text-indigo-700 uppercase">
@@ -113,19 +197,21 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
             />
           </div>
 
-          <div className="space-y-1">
-            <label htmlFor="clientGst" className="block text-xs font-medium text-gray-700">
-              Client GSTIN <span className="font-normal text-gray-400">(Optional)</span>
-            </label>
-            <input
-              id="clientGst"
-              type="text"
-              placeholder="e.g. 33AADFH1286J1ZG"
-              value={data.clientGst}
-              onChange={(e) => updateField("clientGst", e.target.value.toUpperCase())}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
-            />
-          </div>
+          {data.enableGst !== false && (
+            <div className="space-y-1">
+              <label htmlFor="clientGst" className="block text-xs font-medium text-gray-700">
+                Client GSTIN <span className="font-normal text-gray-400">(Optional)</span>
+              </label>
+              <input
+                id="clientGst"
+                type="text"
+                placeholder="e.g. 33AADFH1286J1ZG"
+                value={data.clientGst}
+                onChange={(e) => updateField("clientGst", e.target.value.toUpperCase())}
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+              />
+            </div>
+          )}
 
           <div className="space-y-1">
             <label htmlFor="billNo" className="block text-xs font-medium text-gray-700">
@@ -166,54 +252,6 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
             />
           </div>
-        </div>
-      </section>
-
-      {/* 2. Tax Calculation Mode Switch */}
-      <section className="space-y-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
-        <h2 className="flex items-center gap-2 text-xs font-bold tracking-wider text-indigo-700 uppercase">
-          <Calculator className="h-4 w-4" />
-          GST Calculation Mode
-        </h2>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {/* Mode Option 1: Inclusive (Default) */}
-          <button
-            type="button"
-            onClick={() => updateField("isGstInclusive", true)}
-            className={`cursor-pointer rounded-lg border p-3 text-left transition ${
-              data.isGstInclusive
-                ? "border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm ring-1 ring-indigo-600"
-                : "border-gray-200 bg-gray-50/50 text-gray-600 hover:border-gray-300"
-            }`}
-          >
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span>GST Inclusive (Default)</span>
-              {data.isGstInclusive && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
-            </div>
-            <p className="mt-1 text-[11px] text-gray-500">
-              Entered prices include 18% GST (e.g. ₹5,000 total = ₹4,237.29 base + ₹762.71 GST).
-            </p>
-          </button>
-
-          {/* Mode Option 2: Exclusive */}
-          <button
-            type="button"
-            onClick={() => updateField("isGstInclusive", false)}
-            className={`cursor-pointer rounded-lg border p-3 text-left transition ${
-              !data.isGstInclusive
-                ? "border-indigo-600 bg-indigo-50/70 text-indigo-950 shadow-sm ring-1 ring-indigo-600"
-                : "border-gray-200 bg-gray-50/50 text-gray-600 hover:border-gray-300"
-            }`}
-          >
-            <div className="flex items-center justify-between text-xs font-bold">
-              <span>GST Exclusive</span>
-              {!data.isGstInclusive && <span className="h-2 w-2 rounded-full bg-indigo-600" />}
-            </div>
-            <p className="mt-1 text-[11px] text-gray-500">
-              Entered prices are base amount; 18% GST is added on top (e.g. ₹700 base + ₹126 GST).
-            </p>
-          </button>
         </div>
       </section>
 

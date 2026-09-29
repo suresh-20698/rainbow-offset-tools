@@ -17,6 +17,7 @@ export const DEFAULT_INVOICE: InvoiceData = {
   date: new Date().toISOString().split("T")[0],
   isGstInclusive: false,
   gstRate: 18,
+  enableGst: true,
   letterheadOffsetMm: 55,
   showDigitalHeader: false,
   bankDetails: DEFAULT_BANK_DETAILS,

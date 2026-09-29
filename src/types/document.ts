@@ -26,6 +26,7 @@ export interface InvoiceData {
   date: string; // "DD.MM.YYYY" or "YYYY-MM-DD"
   isGstInclusive: boolean; // default: true
   gstRate: number; // default: 18
+  enableGst?: boolean; // default: true
   items: LineItem[];
   bankDetails: BankDetails;
   letterheadOffsetMm: number; // default: 55
