@@ -5,6 +5,7 @@ export interface LineItem {
   particulars: string;
   quantity: number | "";
   totalPrice: number | ""; // Total price entered by user
+  isFlatCharge?: boolean; // Toggle for flat / lump-sum charges (no Qty, Rate, GST)
 }
 
 export interface BankDetails {
@@ -60,6 +61,7 @@ export interface CalculatedRow {
   amountRs: number;
   amountP: string;
   gstDisplay: string;
+  isFlatCharge?: boolean;
 }
 
 export interface InvoiceCalculations {

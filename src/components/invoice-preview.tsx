@@ -64,15 +64,17 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
               <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase">
                 {data.clientName || "_____________________________________"}
               </h3>
-              <p className="text-xs leading-relaxed font-normal whitespace-pre-line text-slate-700">
+              <p className="text-xs leading-relaxed font-bold whitespace-pre-line text-slate-900">
                 {data.clientAddress || "Client Address Line 1\nCity, State - PIN"}
               </p>
               {!isNonGst && (
                 <div className="pt-0.5 text-xs">
-                  <span className="text-slate-500">GSTIN </span>
-                  <span className="font-bold text-slate-900">
-                    {data.clientGst || "Unregistered"}
-                  </span>
+                  <span className="font-semibold text-slate-600">GSTIN </span>
+                  {data.clientGst?.trim() ? (
+                    <span className="font-bold text-slate-900">{data.clientGst.trim()}</span>
+                  ) : (
+                    <span className="font-medium text-slate-400">N/A</span>
+                  )}
                 </div>
               )}
             </div>
@@ -81,13 +83,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
             <div className="w-56 shrink-0 space-y-1.5 text-xs">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-slate-500">Invoice No</span>
-                <span className="font-bold text-slate-900">
-                  {data.billNo ? `#${data.billNo}` : "—"}
-                </span>
+                {data.billNo?.trim() ? (
+                  <span className="font-bold text-slate-900">#{data.billNo.trim()}</span>
+                ) : (
+                  <span className="font-medium text-slate-400">N/A</span>
+                )}
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-slate-500">Invoice Date</span>
-                <span className="font-bold text-slate-900">{formatDateToIndian(data.date)}</span>
+                {data.date?.trim() ? (
+                  <span className="font-bold text-slate-900">{formatDateToIndian(data.date)}</span>
+                ) : (
+                  <span className="font-medium text-slate-400">N/A</span>
+                )}
               </div>
               <div className="flex items-center justify-between gap-2">
                 <span className="text-slate-500">Place of Supply</span>
@@ -130,19 +138,19 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                       {row.sNo}
                     </td>
                     <td className="px-3 py-2.5 text-[12.5px] font-semibold text-slate-900">
-                      {row.particulars || "—"}
+                      {row.particulars || ""}
                     </td>
                     <td className="px-2 py-2.5 text-center font-medium whitespace-nowrap">
-                      {row.quantity || "—"}
+                      {row.isFlatCharge ? "" : row.quantity || ""}
                     </td>
                     <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
-                      {row.unitRate > 0 ? formatCurrency(row.unitRate) : "—"}
+                      {!row.isFlatCharge && row.unitRate > 0 ? formatCurrency(row.unitRate) : ""}
                     </td>
                     <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
-                      {row.gstDisplay}
+                      {row.isFlatCharge ? "" : row.gstDisplay}
                     </td>
                     <td className="px-2.5 py-2.5 text-right font-bold whitespace-nowrap text-slate-950">
-                      {formatCurrency(row.taxableAmount)}
+                      {row.taxableAmount > 0 ? formatCurrency(row.taxableAmount) : ""}
                     </td>
                   </tr>
                 ))}

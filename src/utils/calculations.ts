@@ -123,14 +123,19 @@ export function calculateInvoice(
   let totalGst = 0;
 
   const rows: CalculatedRow[] = items.map((item, index) => {
-    const qty = typeof item.quantity === "number" ? item.quantity : 0;
+    const isFlatCharge = Boolean(item.isFlatCharge);
+    const qty = isFlatCharge ? 0 : typeof item.quantity === "number" ? item.quantity : 0;
     const totalPrice = typeof item.totalPrice === "number" ? item.totalPrice : 0;
 
     let taxableAmount = 0;
     let gstAmount = 0;
     let totalRowAmount = 0;
 
-    if (isNonGst || gstRate === 0) {
+    if (isFlatCharge) {
+      taxableAmount = totalPrice;
+      gstAmount = 0;
+      totalRowAmount = totalPrice;
+    } else if (isNonGst || gstRate === 0) {
       taxableAmount = totalPrice;
       gstAmount = 0;
       totalRowAmount = totalPrice;
@@ -149,19 +154,26 @@ export function calculateInvoice(
     totalGst += gstAmount;
 
     const { rs: amountRs, p: amountP } = splitRsPaise(taxableAmount);
-    const unitRate = qty > 0 ? taxableAmount / qty : 0;
+    const unitRate = !isFlatCharge && qty > 0 ? taxableAmount / qty : 0;
 
     return {
       sNo: index + 1,
       particulars: item.particulars || "",
-      quantity: item.quantity,
+      quantity: isFlatCharge ? "" : item.quantity,
       unitRate,
       taxableAmount,
       gstAmount,
       totalRowAmount,
       amountRs,
       amountP,
-      gstDisplay: isNonGst ? "0.00" : formatCurrency(gstAmount),
+      gstDisplay: isFlatCharge
+        ? ""
+        : isNonGst
+          ? "0.00"
+          : typeof item.totalPrice === "number"
+            ? formatCurrency(gstAmount)
+            : "",
+      isFlatCharge,
     };
   });
 

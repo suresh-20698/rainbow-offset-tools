@@ -7,6 +7,7 @@ import {
   Calculator,
   Layers,
   Sparkles,
+  Tag,
 } from "lucide-react";
 import React from "react";
 
@@ -38,8 +39,20 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
       particulars: "",
       quantity: 100,
       totalPrice: "",
+      isFlatCharge: false,
     };
     updateField("items", [...data.items, newItem]);
+  };
+
+  const handleAddAmountOnlyItem = () => {
+    const newAmountOnlyItem: LineItem = {
+      id: Date.now().toString(),
+      particulars: "",
+      quantity: "",
+      totalPrice: "",
+      isFlatCharge: true,
+    };
+    updateField("items", [...data.items, newAmountOnlyItem]);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -228,9 +241,20 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="invoiceDate" className="block text-xs font-medium text-gray-700">
-              Invoice Date
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="invoiceDate" className="block text-xs font-medium text-gray-700">
+                Invoice Date <span className="font-normal text-gray-400">(Optional)</span>
+              </label>
+              {data.date && (
+                <button
+                  type="button"
+                  onClick={() => updateField("date", "")}
+                  className="cursor-pointer text-[10px] font-medium text-rose-600 hover:text-rose-800 hover:underline"
+                >
+                  Clear Date
+                </button>
+              )}
+            </div>
             <input
               id="invoiceDate"
               type="date"
@@ -262,28 +286,50 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
             <ReceiptText className="h-4 w-4" />
             Line Items ({data.items.length})
           </h2>
-          <button
-            type="button"
-            onClick={handleAddItem}
-            className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Add Item</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleAddAmountOnlyItem}
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 shadow-2xs transition hover:bg-amber-100 active:scale-95"
+              title="Add a generic amount-only / flat charge line item (no Qty, Rate, or GST)"
+            >
+              <Tag className="h-3.5 w-3.5 text-amber-700" />
+              <span>Add Flat Charge</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleAddItem}
+              className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700 active:scale-95"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              <span>Add Item</span>
+            </button>
+          </div>
         </div>
 
         <div className="space-y-2.5">
           {data.items.map((item, index) => {
-            const qty = typeof item.quantity === "number" ? item.quantity : 0;
+            const isFlatCharge = Boolean(item.isFlatCharge);
+            const qty = !isFlatCharge && typeof item.quantity === "number" ? item.quantity : 0;
             const price = typeof item.totalPrice === "number" ? item.totalPrice : 0;
-            const unitRate = qty > 0 && price > 0 ? (price / qty).toFixed(2) : "0.00";
+            const unitRate =
+              !isFlatCharge && qty > 0 && price > 0 ? (price / qty).toFixed(2) : "0.00";
 
             return (
               <div
                 key={item.id || index}
-                className="flex flex-col items-start gap-2.5 rounded-lg border border-gray-200 bg-gray-50/40 p-2.5 shadow-2xs transition hover:border-gray-300 hover:bg-white sm:flex-row sm:items-center"
+                className={`flex flex-col items-start gap-2.5 rounded-lg border p-2.5 shadow-2xs transition hover:border-gray-300 sm:flex-row sm:items-center ${
+                  isFlatCharge
+                    ? "border-amber-200 bg-amber-50/50 hover:bg-amber-50/80"
+                    : "border-gray-200 bg-gray-50/40 hover:bg-white"
+                }`}
               >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-gray-200 text-[11px] font-bold text-gray-700">
+                <div
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[11px] font-bold ${
+                    isFlatCharge ? "bg-amber-200 text-amber-900" : "bg-gray-200 text-gray-700"
+                  }`}
+                  title={isFlatCharge ? "Flat / Amount-Only Item" : undefined}
+                >
                   {index + 1}
                 </div>
 
@@ -291,7 +337,11 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                 <div className="w-full flex-1 sm:w-auto">
                   <input
                     type="text"
-                    placeholder="Particulars (e.g. Visiting card, Letter pad)"
+                    placeholder={
+                      isFlatCharge
+                        ? "Particulars / Description (e.g. Charges, Courier, Delivery, Design)"
+                        : "Particulars (e.g. Visiting card, Letter pad)"
+                    }
                     value={item.particulars}
                     onChange={(e) => handleItemChange(index, "particulars", e.target.value)}
                     className="w-full rounded-md border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-900 placeholder-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
@@ -300,20 +350,27 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
                 {/* Quantity */}
                 <div className="w-24 shrink-0">
-                  <input
-                    type="number"
-                    min="1"
-                    placeholder="Qty"
-                    value={item.quantity}
-                    onChange={(e) =>
-                      handleItemChange(
-                        index,
-                        "quantity",
-                        e.target.value === "" ? "" : Number(e.target.value),
-                      )
-                    }
-                    className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-center text-xs font-medium text-gray-900 placeholder-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
-                  />
+                  {isFlatCharge ? (
+                    <div
+                      className="flex h-[34px] w-full items-center justify-center rounded-md border border-dashed border-gray-200 bg-gray-50/50 select-none"
+                      title="Quantity not applicable for flat / amount-only charges"
+                    />
+                  ) : (
+                    <input
+                      type="number"
+                      min="1"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleItemChange(
+                          index,
+                          "quantity",
+                          e.target.value === "" ? "" : Number(e.target.value),
+                        )
+                      }
+                      className="w-full rounded-md border border-gray-300 bg-white px-2 py-1.5 text-center text-xs font-medium text-gray-900 placeholder-gray-400 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 focus:outline-none"
+                    />
+                  )}
                 </div>
 
                 {/* Total Price Entered */}
@@ -340,10 +397,14 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
 
                 {/* Derived Rate indicator */}
                 <div
-                  className="hidden w-24 truncate text-right text-[11px] font-medium text-gray-500 lg:block"
-                  title="Derived unit rate"
+                  className="hidden w-24 truncate text-right text-[11px] font-medium lg:block"
+                  title={isFlatCharge ? "Amount only (no Qty, Rate, or GST)" : "Derived unit rate"}
                 >
-                  ₹{unitRate}/ea
+                  {isFlatCharge ? (
+                    <span className="font-semibold text-amber-700">Amount Only</span>
+                  ) : (
+                    <span className="text-gray-500">₹{unitRate}/ea</span>
+                  )}
                 </div>
 
                 {/* Delete Button */}
