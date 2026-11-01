@@ -4,7 +4,8 @@ export interface LineItem {
   id: string;
   particulars: string;
   quantity: number | "";
-  totalPrice: number | ""; // Total price entered by user
+  unitPrice?: number | ""; // Per unit price entered or derived
+  totalPrice: number | ""; // Total price entered or derived
   isFlatCharge?: boolean; // Toggle for flat / lump-sum charges (no Qty, Rate, GST)
 }
 

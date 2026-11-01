@@ -1,4 +1,14 @@
-import { FileText, Receipt, Printer, Download, Upload, RotateCcw, PlusCircle } from "lucide-react";
+import {
+  FileText,
+  ReceiptText,
+  Printer,
+  Download,
+  FolderOpen,
+  RotateCcw,
+  PlusCircle,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from "lucide-react";
 import React, { useRef } from "react";
 
 import type { DocumentType } from "../types/document";
@@ -6,6 +16,8 @@ import type { DocumentType } from "../types/document";
 interface HeaderProps {
   currentType: DocumentType;
   onTypeChange: (type: DocumentType) => void;
+  isDrawerOpen?: boolean;
+  onToggleDrawer?: () => void;
   onNewDocument: (type: DocumentType) => void;
   onSaveJson: () => void;
   onLoadJson: (file: File) => void;
@@ -16,6 +28,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   currentType,
   onTypeChange,
+  isDrawerOpen,
+  onToggleDrawer,
   onNewDocument,
   onSaveJson,
   onLoadJson,
@@ -37,7 +51,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Brand & Type Tabs */}
       <div className="flex items-center gap-4 sm:gap-6">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-500 to-pink-500 p-[1.5px] shadow-sm">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-600 p-[1.5px] shadow-sm">
             <div className="flex h-full w-full items-center justify-center rounded-[10px] bg-white">
               <span className="text-base">🌈</span>
             </div>
@@ -59,11 +73,11 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => onTypeChange("invoice")}
             className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
               currentType === "invoice"
-                ? "bg-white text-gray-900 shadow-sm"
+                ? "bg-white text-primary-700 shadow-xs"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
-            <Receipt className="h-3.5 w-3.5 text-indigo-600" />
+            <ReceiptText className="h-4 w-4 text-primary-600" />
             <span>Invoice</span>
           </button>
           <button
@@ -71,14 +85,35 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => onTypeChange("letter")}
             className={`flex cursor-pointer items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition ${
               currentType === "letter"
-                ? "bg-white text-gray-900 shadow-sm"
+                ? "bg-white text-primary-700 shadow-xs"
                 : "text-gray-600 hover:text-gray-900"
             }`}
           >
-            <FileText className="h-3.5 w-3.5 text-indigo-600" />
+            <FileText className="h-4 w-4 text-primary-600" />
             <span>Letter</span>
           </button>
         </div>
+
+        {/* Form Drawer Toggle Button */}
+        {onToggleDrawer && (
+          <button
+            type="button"
+            onClick={onToggleDrawer}
+            className={`flex cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold shadow-2xs transition ${
+              isDrawerOpen
+                ? "border-primary-200 bg-primary-50 text-primary-700 hover:bg-primary-100"
+                : "border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+            title={isDrawerOpen ? "Collapse Form Drawer" : "Open Form Drawer"}
+          >
+            {isDrawerOpen ? (
+              <PanelLeftClose className="h-4 w-4 text-primary-600" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4 text-gray-600" />
+            )}
+            <span className="hidden sm:inline">{isDrawerOpen ? "Hide Form" : "Edit Form"}</span>
+          </button>
+        )}
       </div>
 
       {/* Action Buttons */}
@@ -98,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900"
           title="Create a fresh document"
         >
-          <PlusCircle className="h-3.5 w-3.5 text-emerald-600" />
+          <PlusCircle className="h-4 w-4 text-primary-600" />
           <span className="hidden md:inline">New</span>
         </button>
 
@@ -108,7 +143,7 @@ export const Header: React.FC<HeaderProps> = ({
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900"
           title="Open a saved .json draft file"
         >
-          <Upload className="h-3.5 w-3.5 text-blue-600" />
+          <FolderOpen className="h-4 w-4 text-primary-600" />
           <span className="hidden md:inline">Open Draft</span>
         </button>
 
@@ -118,26 +153,26 @@ export const Header: React.FC<HeaderProps> = ({
           className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900"
           title="Save draft to disk as .json (replaces .cdr)"
         >
-          <Download className="h-3.5 w-3.5 text-indigo-600" />
+          <Download className="h-4 w-4 text-primary-600" />
           <span className="hidden md:inline">Save Draft</span>
         </button>
 
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-gray-300 bg-white px-2 py-1.5 text-xs font-medium text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-900"
-          title="Reset to sample data"
+          className="inline-flex cursor-pointer items-center justify-center rounded-lg border border-gray-300 bg-white p-1.5 text-gray-600 shadow-sm transition hover:bg-gray-50 hover:text-gray-900"
+          title="Reset form"
         >
-          <RotateCcw className="h-3.5 w-3.5" />
+          <RotateCcw className="h-4 w-4 text-gray-500" />
         </button>
 
         <button
           type="button"
           onClick={onPrint}
-          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-indigo-700 active:scale-95"
+          className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-primary-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm transition hover:bg-primary-700 active:scale-95"
           title="Print to A4 Letterhead or Download PDF"
         >
-          <Printer className="h-4 w-4" />
+          <Printer className="h-4.5 w-4.5 text-white" />
           <span>Print A4 / PDF</span>
         </button>
       </div>

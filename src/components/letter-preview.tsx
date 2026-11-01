@@ -55,7 +55,9 @@ export const LetterPreview: React.FC<LetterPreviewProps> = ({ data }) => {
             </div>
             <div className="font-semibold text-slate-900">
               <span className="text-slate-500">Date: </span>
-              <span className="font-bold text-slate-950">{formatDateToIndian(data.date)}</span>
+              <span className="font-bold text-slate-950">
+                {data.date ? formatDateToIndian(data.date) : "—"}
+              </span>
             </div>
           </div>
 
@@ -79,7 +81,7 @@ export const LetterPreview: React.FC<LetterPreviewProps> = ({ data }) => {
 
           {/* Subject Line */}
           {data.subject && (
-            <div className="rounded-r-md border-l-4 border-indigo-600 bg-slate-50 px-2.5 py-1.5">
+            <div className="rounded-r-md border-l-4 border-primary-600 bg-slate-50 px-2.5 py-1.5">
               <span className="mr-1.5 text-[11.5px] font-bold tracking-wide text-slate-950 uppercase">
                 Subject:
               </span>

@@ -1,4 +1,4 @@
-import type { BankDetails, InvoiceData, LetterData } from "../types/document";
+import type { BankDetails, InvoiceData, LetterData, LineItem } from "../types/document";
 
 export const DEFAULT_BANK_DETAILS: BankDetails = {
   accountName: "RAINBOW OFFSET PRINTING PUBLISHING AND TRADING",
@@ -8,6 +8,39 @@ export const DEFAULT_BANK_DETAILS: BankDetails = {
 };
 
 export const DEFAULT_INVOICE: InvoiceData = {
+  documentType: "invoice",
+  clientName: "",
+  clientAddress: "",
+  clientGst: "",
+  billNo: "",
+  stateCode: "33",
+  date: "",
+  isGstInclusive: false,
+  gstRate: 18,
+  enableGst: true,
+  letterheadOffsetMm: 55,
+  showDigitalHeader: false,
+  bankDetails: DEFAULT_BANK_DETAILS,
+  items: [{ id: "1", particulars: "", quantity: "", unitPrice: "", totalPrice: "" }],
+};
+
+export const DEFAULT_LETTER: LetterData = {
+  documentType: "letter",
+  date: "",
+  refNo: "",
+  recipientName: "",
+  recipientOrg: "",
+  recipientAddress: "",
+  subject: "",
+  salutation: "",
+  body: "",
+  signatoryCompany: "For Rainbow Offset Printer",
+  signatoryTitle: "Authorised Signature",
+  letterheadOffsetMm: 55,
+  showDigitalHeader: false,
+};
+
+export const SAMPLE_INVOICE: InvoiceData = {
   documentType: "invoice",
   clientName: "HOTEL GNANAM",
   clientAddress: "84/14-A, ANNA SALAI KEELAVASAL,\nTHANJAVUR, Tamil Nadu, 613001",
@@ -22,17 +55,23 @@ export const DEFAULT_INVOICE: InvoiceData = {
   showDigitalHeader: false,
   bankDetails: DEFAULT_BANK_DETAILS,
   items: [
-    { id: "1", particulars: "MD MEMO A6", quantity: 10, totalPrice: 700 },
-    { id: "2", particulars: "Letter pad sheet", quantity: 1000, totalPrice: 2000 },
-    { id: "3", particulars: "Tariff", quantity: 500, totalPrice: 1000 },
-    { id: "4", particulars: "Visiting card", quantity: 1000, totalPrice: 2000 },
-    { id: "5", particulars: "Room Entry Form 1 + 2", quantity: 10, totalPrice: 2000 },
-    { id: "6", particulars: "Room Booking Form", quantity: 10, totalPrice: 1000 },
-    { id: "7", particulars: "Buffet Menu card", quantity: 100, totalPrice: 500 },
+    { id: "1", particulars: "MD MEMO A6", quantity: 10, unitPrice: 70, totalPrice: 700 },
+    { id: "2", particulars: "Letter pad sheet", quantity: 1000, unitPrice: 2, totalPrice: 2000 },
+    { id: "3", particulars: "Tariff", quantity: 500, unitPrice: 2, totalPrice: 1000 },
+    { id: "4", particulars: "Visiting card", quantity: 1000, unitPrice: 2, totalPrice: 2000 },
+    {
+      id: "5",
+      particulars: "Room Entry Form 1 + 2",
+      quantity: 10,
+      unitPrice: 200,
+      totalPrice: 2000,
+    },
+    { id: "6", particulars: "Room Booking Form", quantity: 10, unitPrice: 100, totalPrice: 1000 },
+    { id: "7", particulars: "Buffet Menu card", quantity: 100, unitPrice: 5, totalPrice: 500 },
   ],
 };
 
-export const DEFAULT_LETTER: LetterData = {
+export const SAMPLE_LETTER: LetterData = {
   documentType: "letter",
   date: new Date().toISOString().split("T")[0],
   refNo: "RO/2026-27/L-101",
@@ -52,14 +91,50 @@ Please feel free to reach out to us for any adjustments or additional requiremen
   showDigitalHeader: false,
 };
 
-const INVOICE_STORAGE_KEY = "rainbow_offset_invoice_data_v1";
-const LETTER_STORAGE_KEY = "rainbow_offset_letter_data_v1";
+const INVOICE_STORAGE_KEY = "rainbow_offset_invoice_data_v2";
+const LETTER_STORAGE_KEY = "rainbow_offset_letter_data_v2";
+
+export function normalizeInvoiceData(inv: InvoiceData): InvoiceData {
+  const normalizedItems: LineItem[] = (inv.items || []).map((item, idx) => {
+    const isFlatCharge = Boolean(item.isFlatCharge);
+    const qty = !isFlatCharge && typeof item.quantity === "number" ? item.quantity : 0;
+    const price = typeof item.totalPrice === "number" ? item.totalPrice : 0;
+    const unitPrice: number | "" =
+      typeof item.unitPrice === "number"
+        ? item.unitPrice
+        : !isFlatCharge && qty > 0 && price > 0
+          ? Math.round((price / qty) * 100) / 100
+          : "";
+
+    return {
+      id: item.id || String(idx + 1),
+      particulars: item.particulars || "",
+      quantity: typeof item.quantity === "number" ? item.quantity : "",
+      unitPrice,
+      totalPrice: typeof item.totalPrice === "number" ? item.totalPrice : "",
+      isFlatCharge,
+    };
+  });
+
+  return {
+    ...inv,
+    items: normalizedItems.length > 0 ? normalizedItems : DEFAULT_INVOICE.items,
+  };
+}
 
 export function loadInvoiceFromStorage(): InvoiceData {
   try {
     const data = localStorage.getItem(INVOICE_STORAGE_KEY);
     if (data) {
-      return JSON.parse(data);
+      return normalizeInvoiceData(JSON.parse(data));
+    }
+    // Check old v1 storage; if it contains Hotel Gnanam default sample, ignore it
+    const oldDataStr = localStorage.getItem("rainbow_offset_invoice_data_v1");
+    if (oldDataStr) {
+      const oldData = JSON.parse(oldDataStr);
+      if (oldData.clientName && oldData.clientName !== "HOTEL GNANAM") {
+        return normalizeInvoiceData(oldData);
+      }
     }
   } catch (err) {
     console.warn("Failed to load invoice from localStorage:", err);
@@ -81,6 +156,14 @@ export function loadLetterFromStorage(): LetterData {
     if (data) {
       return JSON.parse(data);
     }
+    // Check old v1 storage; if it contains Hotel Gnanam default sample, ignore it
+    const oldDataStr = localStorage.getItem("rainbow_offset_letter_data_v1");
+    if (oldDataStr) {
+      const oldData = JSON.parse(oldDataStr);
+      if (oldData.recipientOrg && oldData.recipientOrg !== "Hotel Gnanam") {
+        return oldData;
+      }
+    }
   } catch (err) {
     console.warn("Failed to load letter from localStorage:", err);
   }
@@ -96,7 +179,8 @@ export function saveLetterToStorage(data: LetterData): void {
 }
 
 /**
- * Generates standardized filename in format: Billcode_clientname_date
+ * Generates standardized filename in format: Invoice_BillNo_Date or Letter_RefNo_Date
+ * (Without client/business name)
  */
 export function getDocumentFilename(data: InvoiceData | LetterData): string {
   const sanitize = (str: string) =>
@@ -107,16 +191,16 @@ export function getDocumentFilename(data: InvoiceData | LetterData): string {
 
   if (data.documentType === "invoice") {
     const inv = data as InvoiceData;
-    const billCode = sanitize(inv.billNo) || "Invoice";
-    const clientName = sanitize(inv.clientName) || "Client";
-    const date = sanitize(inv.date) || new Date().toISOString().split("T")[0];
-    return `${billCode}_${clientName}_${date}`;
+    const parts = ["Invoice"];
+    if (inv.billNo?.trim()) parts.push(sanitize(inv.billNo));
+    if (inv.date?.trim()) parts.push(sanitize(inv.date));
+    return parts.join("_");
   } else {
     const letData = data as LetterData;
-    const refCode = sanitize(letData.refNo) || "Letter";
-    const recipient = sanitize(letData.recipientOrg || letData.recipientName) || "Recipient";
-    const date = sanitize(letData.date) || new Date().toISOString().split("T")[0];
-    return `${refCode}_${recipient}_${date}`;
+    const parts = ["Letter"];
+    if (letData.refNo?.trim()) parts.push(sanitize(letData.refNo));
+    if (letData.date?.trim()) parts.push(sanitize(letData.date));
+    return parts.join("_");
   }
 }
 
@@ -150,8 +234,10 @@ export function importFromJsonFile(
     try {
       const content = e.target?.result as string;
       const parsed = JSON.parse(content);
-      if (parsed.documentType === "invoice" || parsed.documentType === "letter") {
-        onSuccess(parsed);
+      if (parsed.documentType === "invoice") {
+        onSuccess(normalizeInvoiceData(parsed as InvoiceData));
+      } else if (parsed.documentType === "letter") {
+        onSuccess(parsed as LetterData);
       } else {
         onError("Invalid file format. Must be an Invoice or Letter document.");
       }

@@ -64,9 +64,11 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
               <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase">
                 {data.clientName || "_____________________________________"}
               </h3>
-              <p className="text-xs leading-relaxed font-bold whitespace-pre-line text-slate-900">
-                {data.clientAddress || "Client Address Line 1\nCity, State - PIN"}
-              </p>
+              {data.clientAddress && (
+                <p className="text-xs leading-relaxed font-bold whitespace-pre-line text-slate-900">
+                  {data.clientAddress}
+                </p>
+              )}
               {!isNonGst && (
                 <div className="pt-0.5 text-xs">
                   <span className="font-semibold text-slate-600">GSTIN </span>
@@ -117,10 +119,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           </div>
 
           {/* Line Items Table */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-200">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-[1.5px] border-slate-300">
             <table className="h-full w-full border-collapse text-left">
               <thead>
-                <tr className="divide-x divide-slate-200 border-b border-slate-200 bg-slate-100/90 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
+                <tr className="divide-x-[1.5px] divide-slate-300 border-b-[1.5px] border-slate-300 bg-slate-100/90 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
                   <th className="w-8 px-2 py-2.5 text-center">#</th>
                   <th className="px-3 py-2.5">Particulars / Job Description</th>
                   <th className="w-12 px-2 py-2.5 text-center whitespace-nowrap">Qty</th>
@@ -133,7 +135,10 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
               </thead>
               <tbody className="h-full text-xs text-slate-800">
                 {calculations.rows.map((row) => (
-                  <tr key={row.sNo} className="divide-x divide-slate-200 hover:bg-slate-50/50">
+                  <tr
+                    key={row.sNo}
+                    className="divide-x-[1.5px] divide-slate-300 hover:bg-slate-50/50"
+                  >
                     <td className="px-2 py-2.5 text-center font-medium text-slate-500">
                       {row.sNo}
                     </td>
@@ -155,7 +160,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                   </tr>
                 ))}
                 {/* Auto-filled empty space row to extend table columns to the bottom */}
-                <tr className="h-full divide-x divide-slate-200">
+                <tr className="h-full divide-x-[1.5px] divide-slate-300">
                   <td className="px-2 py-1"></td>
                   <td className="px-3 py-1"></td>
                   <td className="px-2 py-1"></td>
