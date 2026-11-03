@@ -298,13 +298,13 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
             <label htmlFor="clientName" className="block text-xs font-medium text-gray-700">
               Client / Business Name <span className="text-rose-500">*</span>
             </label>
-            <input
+            <textarea
               id="clientName"
-              type="text"
+              rows={2}
               placeholder="e.g. HOTEL GNANAM"
               value={data.clientName}
               onChange={(e) => updateField("clientName", e.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-primary-600 focus:ring-1 focus:ring-primary-600 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 font-sans text-sm text-gray-900 placeholder-gray-400 focus:border-primary-600 focus:ring-1 focus:ring-primary-600 focus:outline-none"
             />
           </div>
 
@@ -456,7 +456,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
         {viewMode === "table" ? (
           /* Table View: Ultra-Compact Spreadsheet-Style 1-Row Grid */
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-2xs">
-            <table className="w-full min-w-[500px] text-left text-xs">
+            <table className="w-full min-w-[500px] table-fixed text-left text-xs">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50/90 text-[10.5px] font-bold tracking-wider text-gray-600 uppercase">
                   <th className="w-8 py-2 pl-2.5 text-center">#</th>
@@ -492,7 +492,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                       </td>
 
                       <td className="px-2 py-1.5">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex min-w-0 items-center gap-1.5">
                           {isFlatCharge && (
                             <button
                               type="button"
@@ -512,7 +512,7 @@ export const InvoiceForm: React.FC<InvoiceFormProps> = ({ data, onChange }) => {
                             }
                             value={item.particulars}
                             onChange={(e) => handleItemChange(index, "particulars", e.target.value)}
-                            className="w-full rounded border border-gray-200 bg-gray-50/40 px-2 py-1 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:border-primary-600 focus:bg-white focus:outline-none"
+                            className="min-w-0 w-full rounded border border-gray-200 bg-gray-50/40 px-2 py-1 text-xs font-semibold text-gray-900 placeholder-gray-400 focus:border-primary-600 focus:bg-white focus:outline-none"
                           />
                         </div>
                       </td>

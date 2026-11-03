@@ -61,7 +61,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
               <span className="block text-[10px] font-bold tracking-wider text-slate-500 uppercase">
                 Billed To
               </span>
-              <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase">
+              <h3 className="text-sm leading-snug font-bold text-slate-900 uppercase whitespace-pre-line break-words">
                 {data.clientName || "_____________________________________"}
               </h3>
               {data.clientAddress && (
@@ -84,7 +84,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
             {/* Invoice Meta */}
             <div className="w-56 shrink-0 space-y-1.5 text-xs">
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Invoice No</span>
+                <span className="font-medium text-slate-700">Invoice No</span>
                 {data.billNo?.trim() ? (
                   <span className="font-bold text-slate-900">#{data.billNo.trim()}</span>
                 ) : (
@@ -92,7 +92,7 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                 )}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Invoice Date</span>
+                <span className="font-medium text-slate-700">Invoice Date</span>
                 {data.date?.trim() ? (
                   <span className="font-bold text-slate-900">{formatDateToIndian(data.date)}</span>
                 ) : (
@@ -100,13 +100,13 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
                 )}
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Place of Supply</span>
+                <span className="font-medium text-slate-700">Place of Supply</span>
                 <span className="font-bold text-slate-900">
                   Tamil Nadu ({data.stateCode || "33"})
                 </span>
               </div>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-slate-500">Pricing Mode</span>
+                <span className="font-medium text-slate-700">Pricing Mode</span>
                 <span className="font-semibold text-slate-800">
                   {isNonGst
                     ? "Non-GST"
@@ -119,48 +119,48 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           </div>
 
           {/* Line Items Table */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-[1.5px] border-slate-300">
-            <table className="h-full w-full border-collapse text-left">
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border-2 border-slate-300">
+            <table className="h-full w-full table-fixed border-collapse text-left">
               <thead>
-                <tr className="divide-x-[1.5px] divide-slate-300 border-b-[1.5px] border-slate-300 bg-slate-100/90 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
-                  <th className="w-8 px-2 py-2.5 text-center">#</th>
+                <tr className="divide-x-2 divide-slate-300 border-b-2 border-slate-300 bg-slate-50 text-[11px] font-bold tracking-wider text-slate-800 uppercase">
+                  <th className="w-9 px-2 py-2.5 text-center">#</th>
                   <th className="px-3 py-2.5">Particulars / Job Description</th>
-                  <th className="w-12 px-2 py-2.5 text-center whitespace-nowrap">Qty</th>
-                  <th className="w-20 px-2 py-2.5 text-right whitespace-nowrap">Rate (₹)</th>
-                  <th className="w-[86px] px-2 py-2.5 text-right whitespace-nowrap">
+                  <th className="w-14 px-2 py-2.5 text-center whitespace-nowrap">Qty</th>
+                  <th className="w-22 px-2 py-2.5 text-right whitespace-nowrap">Rate (₹)</th>
+                  <th className="w-[84px] px-2 py-2.5 text-right whitespace-nowrap">
                     {isNonGst ? "GST" : `GST (${data.gstRate}%)`}
                   </th>
-                  <th className="w-24 px-2.5 py-2.5 text-right whitespace-nowrap">Amount (₹)</th>
+                  <th className="w-28 px-2.5 py-2.5 text-right whitespace-nowrap">Amount (₹)</th>
                 </tr>
               </thead>
               <tbody className="h-full text-xs text-slate-800">
                 {calculations.rows.map((row) => (
                   <tr
                     key={row.sNo}
-                    className="divide-x-[1.5px] divide-slate-300 hover:bg-slate-50/50"
+                    className="divide-x-2 divide-slate-300 hover:bg-slate-50/50"
                   >
-                    <td className="px-2 py-2.5 text-center font-medium text-slate-500">
+                    <td className="px-2 py-2.5 text-center font-medium text-slate-500 align-top">
                       {row.sNo}
                     </td>
-                    <td className="px-3 py-2.5 text-[12.5px] font-semibold text-slate-900">
+                    <td className="px-3 py-2.5 text-[12.5px] leading-snug font-semibold text-slate-900 break-words whitespace-pre-wrap align-top">
                       {row.particulars || ""}
                     </td>
-                    <td className="px-2 py-2.5 text-center font-medium whitespace-nowrap">
+                    <td className="px-2 py-2.5 text-center font-medium whitespace-nowrap align-top">
                       {row.isFlatCharge ? "" : row.quantity || ""}
                     </td>
-                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
+                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600 align-top">
                       {!row.isFlatCharge && row.unitRate > 0 ? formatCurrency(row.unitRate) : ""}
                     </td>
-                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600">
+                    <td className="px-2 py-2.5 text-right font-medium whitespace-nowrap text-slate-600 align-top">
                       {row.isFlatCharge ? "" : row.gstDisplay}
                     </td>
-                    <td className="px-2.5 py-2.5 text-right font-bold whitespace-nowrap text-slate-950">
+                    <td className="px-2.5 py-2.5 text-right font-bold whitespace-nowrap text-slate-950 align-top">
                       {row.taxableAmount > 0 ? formatCurrency(row.taxableAmount) : ""}
                     </td>
                   </tr>
                 ))}
                 {/* Auto-filled empty space row to extend table columns to the bottom */}
-                <tr className="h-full divide-x-[1.5px] divide-slate-300">
+                <tr className="h-full divide-x-2 divide-slate-300">
                   <td className="px-2 py-1"></td>
                   <td className="px-3 py-1"></td>
                   <td className="px-2 py-1"></td>
@@ -176,29 +176,29 @@ export const InvoicePreview: React.FC<InvoicePreviewProps> = ({ data }) => {
           <div className="flex shrink-0 justify-end pt-1 pb-1 text-xs">
             {/* Right: Clean Accounting Tax & Total Ledger */}
             <div className="w-64 shrink-0 space-y-1.5 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-slate-600">Taxable Amount</span>
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="font-medium text-slate-700">Taxable Amount</span>
                 <span className="font-semibold text-slate-900 tabular-nums">
                   ₹{formatCurrency(calculations.totalTaxable)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-slate-600">
-                <span>CGST ({data.gstRate / 2}%)</span>
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="font-medium text-slate-700">CGST ({data.gstRate / 2}%)</span>
                 <span className="font-medium text-slate-800 tabular-nums">
                   ₹{formatCurrency(calculations.cgst)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-slate-600">
-                <span>SGST ({data.gstRate / 2}%)</span>
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="font-medium text-slate-700">SGST ({data.gstRate / 2}%)</span>
                 <span className="font-medium text-slate-800 tabular-nums">
                   ₹{formatCurrency(calculations.sgst)}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-slate-600">
-                <span>Round Off</span>
+              <div className="flex items-center justify-between text-slate-700">
+                <span className="font-medium text-slate-700">Round Off</span>
                 <span className="font-medium text-slate-800 tabular-nums">
                   {calculations.roundOff > 0 ? "+" : ""}
                   {formatCurrency(calculations.roundOff)}
